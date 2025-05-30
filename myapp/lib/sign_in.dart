@@ -48,6 +48,27 @@ class SignInPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
+                  // Name Field
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: "Name",
+                      prefixIcon: const Icon(
+                        Icons.person,
+                        color: Colors.white70,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white12,
+                      labelStyle: const TextStyle(color: Colors.white),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    style: const TextStyle(color: Colors.white),
+                    keyboardType: TextInputType.name,
+                  ),
+                  const SizedBox(height: 20),
+
                   // Email Field
                   TextField(
                     decoration: InputDecoration(
