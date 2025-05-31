@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'AllUsersPage.dart';
 import 'PremiumUsersPage.dart';
-import 'messagepage.dart'; // <-- Import your MessagesPage
+import 'messagepage.dart';
 
-class AdminDashboardPage extends StatelessWidget {
+class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
+  @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
   // Dummy user lists for demonstration
   List<Map<String, String>> get allUsers => [
         {"name": "Harsh Darji", "email": "darjiharsh2005@gmail.com"},
@@ -20,71 +24,10 @@ class AdminDashboardPage extends StatelessWidget {
         {"name": "Priya Shah", "email": "priyashah@gmail.com"},
       ];
 
-  void _showUserList(BuildContext context, String title,
-      List<Map<String, String>> users, Color color) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        builder: (_, controller) => Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.15),
-                blurRadius: 18,
-                spreadRadius: 2,
-                offset: const Offset(0, -6),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ),
-              const Divider(thickness: 1.2),
-              Expanded(
-                child: ListView.builder(
-                  controller: controller,
-                  itemCount: users.length,
-                  itemBuilder: (context, index) {
-                    final user = users[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: color.withOpacity(0.15),
-                        child: Icon(Icons.person, color: color),
-                      ),
-                      title: Text(user["name"] ?? "",
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text(user["email"] ?? ""),
-                      trailing: title == "Premium Users"
-                          ? const Icon(Icons.workspace_premium,
-                              color: Colors.deepPurple)
-                          : null,
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  // News management
+  final List<Map<String, String>> _newsList = [];
+  final TextEditingController _newsController = TextEditingController();
+  int? _editingIndex;
 
   void _showGroupSheet(BuildContext context) {
     showModalBottomSheet(
@@ -101,7 +44,6 @@ class AdminDashboardPage extends StatelessWidget {
             subtitle: const Text("Everyone in StockTrade"),
             onTap: () {
               Navigator.pop(context);
-              // TODO: Navigate to all users group chat
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -110,13 +52,11 @@ class AdminDashboardPage extends StatelessWidget {
             },
           ),
           ListTile(
-            leading:
-                const Icon(Icons.workspace_premium, color: Colors.deepPurple),
+            leading: const Icon(Icons.workspace_premium, color: Colors.deepPurple),
             title: const Text("Premium Users Group"),
             subtitle: const Text("Only premium members"),
             onTap: () {
               Navigator.pop(context);
-              // TODO: Navigate to premium users group chat
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -127,6 +67,60 @@ class AdminDashboardPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showNewsDialog({int? editIndex}) {
+    if (editIndex != null) {
+      _newsController.text = _newsList[editIndex]['text'] ?? '';
+    } else {
+      _newsController.clear();
+    }
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(editIndex == null ? "Post News" : "Edit News"),
+        content: TextField(
+          controller: _newsController,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: "Enter news to post...",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _newsController.clear();
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                if (editIndex == null) {
+                  _newsList.insert(0, {
+                    "text": _newsController.text,
+                    "date": DateTime.now().toString().substring(0, 16)
+                  });
+                } else {
+                  _newsList[editIndex]['text'] = _newsController.text;
+                }
+              });
+              _newsController.clear();
+              Navigator.pop(context);
+            },
+            child: Text(editIndex == null ? "Post" : "Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteNews(int index) {
+    setState(() {
+      _newsList.removeAt(index);
+    });
   }
 
   @override
@@ -140,11 +134,10 @@ class AdminDashboardPage extends StatelessWidget {
             letterSpacing: 1.2,
           ),
         ),
-        backgroundColor: const Color(0xFF1f4037),
+        backgroundColor: Colors.blueGrey[900],
         actions: [
           IconButton(
-            icon: const Icon(Icons.message_rounded,
-                color: Colors.white), // Always white
+            icon: const Icon(Icons.message_rounded, color: Colors.white),
             tooltip: "StockTrade Group Calls",
             onPressed: () => _showGroupSheet(context),
           ),
@@ -162,7 +155,7 @@ class AdminDashboardPage extends StatelessWidget {
         width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF1f4037), Color(0xFF99f2c8)],
+            colors: [Color(0xFFe3eafc), Color(0xFFb6c8f9)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -179,7 +172,7 @@ class AdminDashboardPage extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1f4037),
+                      color: Colors.blueGrey,
                     ),
                   ),
                   const SizedBox(height: 40),
@@ -191,8 +184,8 @@ class AdminDashboardPage extends StatelessWidget {
                       _DashboardCircle(
                         icon: Icons.people,
                         label: "All Users",
-                        color: Colors.blueAccent,
-                        glowColor: Colors.blueAccent.withOpacity(0.3),
+                        color: Colors.blue,
+                        glowColor: Colors.blue.withOpacity(0.3),
                         onTap: () {
                           Navigator.push(
                             context,
@@ -219,6 +212,89 @@ class AdminDashboardPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 48),
+                  // News Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "News Board",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueGrey,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        icon: const Icon(Icons.add),
+                        label: const Text("Post News"),
+                        onPressed: () => _showNewsDialog(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _newsList.isEmpty
+                      ? Container(
+                          padding: const EdgeInsets.all(32),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            "No news posted yet.",
+                            style: TextStyle(
+                              color: Colors.blueGrey,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _newsList.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final news = _newsList[index];
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: ListTile(
+                                title: Text(
+                                  news["text"] ?? "",
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                subtitle: Text(
+                                  "Posted: ${news["date"]}",
+                                  style: const TextStyle(fontSize: 13),
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, color: Colors.blue),
+                                      tooltip: "Edit",
+                                      onPressed: () => _showNewsDialog(editIndex: index),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      tooltip: "Delete",
+                                      onPressed: () => _deleteNews(index),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                 ],
               ),
             ),

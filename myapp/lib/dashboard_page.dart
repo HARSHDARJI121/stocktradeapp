@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:flutter/services.dart';
+import 'transaction_page.dart'; // Import the TransactionPage
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -187,7 +188,10 @@ class DashboardPage extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const MessagesPage(group: '',)),
+                        MaterialPageRoute(
+                            builder: (_) => const MessagesPage(
+                                  group: '',
+                                )),
                       );
                     },
                     child: const Padding(
@@ -235,10 +239,10 @@ class _ImageCarouselState extends State<ImageCarousel> {
   final PageController _controller = PageController();
   final List<String> _images = [
     'img1.jpg',
-    'img1.jpg',
-    'img1.jpg',
-    'img1.jpg',
-    'img1.jpg',
+    'img2.jpg',
+    'img3.jpg',
+    'img4.jpg',
+    'img5.avif',
   ];
   int _currentPage = 0;
   Timer? _timer;
@@ -495,7 +499,19 @@ class _PremiumPlansSectionState extends State<PremiumPlansSection> {
                         price: "₹1251 / month",
                         buttonColor: Colors.blueAccent,
                         onPressed: () {
-                          _openCheckout(amount: 1251, plan: "Standard");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TransactionPage(
+                                plan: "Standard",
+                                amount: "1251",
+                                userName:
+                                    "Harsh Darji", // Replace with actual user name
+                                userEmail:
+                                    "darjiharsh2005@gmail.com", // Replace with actual user email
+                              ),
+                            ),
+                          );
                         },
                       ),
                       if (isWide)
@@ -508,10 +524,22 @@ class _PremiumPlansSectionState extends State<PremiumPlansSection> {
                         title: "Premium Plan",
                         subtitle: "Premium plan for three months",
                         description: "Advanced stock trading analysis",
-                        price: "₹3500 / 3 months",
+                        price: "6000 / 3 months",
                         buttonColor: Colors.deepPurple,
                         onPressed: () {
-                          _openCheckout(amount: 3500, plan: "Premium");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TransactionPage(
+                                plan: "premium",
+                                amount: "6000",
+                                userName:
+                                    "Harsh Darji", // Replace with actual user name
+                                userEmail:
+                                    "darjiharsh2005@gmail.com", // Replace with actual user email
+                              ),
+                            ),
+                          );
                         },
                       ),
                     ],
