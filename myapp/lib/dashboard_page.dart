@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'newspage.dart';
 import 'messagepage.dart';
+import 'userplanpage.dart'; // Import the UserPlanPage
 import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+import 'package:flutter/services.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -61,15 +65,56 @@ class DashboardPage extends StatelessWidget {
               title: const Text("Plan"),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to Plan Page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UserPlanPage()),
+                );
               },
             ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text("Settings"),
-              onTap: () {
+              onTap: () async {
                 Navigator.pop(context);
-                // TODO: Navigate to Settings Page
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(18)),
+                  ),
+                  builder: (context) => Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading:
+                              const Icon(Icons.group, color: Color(0xFF1f4037)),
+                          title: const Text("Join WhatsApp Channel"),
+                          onTap: () async {
+                            const url =
+                                'https://chat.whatsapp.com/DS9vcabs9DhBFee5VMZqez';
+                            if (await canLaunchUrl(Uri.parse(url))) {
+                              await launchUrl(Uri.parse(url),
+                                  mode: LaunchMode.externalApplication);
+                            }
+                            Navigator.pop(context);
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.logout, color: Colors.red),
+                          title: const Text("Logout"),
+                          onTap: () {
+                            Navigator.pop(context); // Close bottom sheet
+                            Navigator.of(context).popUntil(
+                                (route) => route.isFirst); // Go to login/root
+                            // Or use your logout logic here
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
             ),
           ],
@@ -142,7 +187,7 @@ class DashboardPage extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const MessagesPage()),
+                        MaterialPageRoute(builder: (_) => const MessagesPage(group: '',)),
                       );
                     },
                     child: const Padding(
@@ -329,8 +374,67 @@ class AboutSection extends StatelessWidget {
   }
 }
 
-class PremiumPlansSection extends StatelessWidget {
+class PremiumPlansSection extends StatefulWidget {
   const PremiumPlansSection({super.key});
+
+  @override
+  State<PremiumPlansSection> createState() => _PremiumPlansSectionState();
+}
+
+class _PremiumPlansSectionState extends State<PremiumPlansSection> {
+  late Razorpay _razorpay;
+
+  @override
+  void initState() {
+    super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+  }
+
+  @override
+  void dispose() {
+    _razorpay.clear();
+    super.dispose();
+  }
+
+  void _openCheckout({required int amount, required String plan}) {
+    var options = {
+      'key': 'rzp_test_YourTestKeyHere', // Replace with your Razorpay Test Key
+      'amount': amount * 100, // Amount in paise
+      'name': 'StockTrade',
+      'description': '$plan Plan Purchase',
+      'prefill': {'contact': '', 'email': ''},
+      'external': {
+        'wallets': ['paytm']
+      }
+    };
+
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Payment Successful!")),
+    );
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Payment Failed!")),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("External Wallet Selected")),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -360,6 +464,7 @@ class PremiumPlansSection extends StatelessWidget {
                     direction: isWide ? Axis.horizontal : Axis.vertical,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Basic Plan (no payment)
                       _PlanCard(
                         icon: Icons.star_border,
                         title: "Basic Plan",
@@ -368,33 +473,46 @@ class PremiumPlansSection extends StatelessWidget {
                             "Get proper stock market tips and analysis",
                         price: "Free",
                         buttonColor: Colors.greenAccent.shade700,
-                        onPressed: () {},
+                        onPressed: () async {
+                          const url =
+                              'https://chat.whatsapp.com/DS9vcabs9DhBFee5VMZqez';
+                          if (await canLaunchUrl(Uri.parse(url))) {
+                            await launchUrl(Uri.parse(url),
+                                mode: LaunchMode.externalApplication);
+                          }
+                        },
                       ),
                       if (isWide)
                         const SizedBox(width: 18)
                       else
                         const SizedBox(height: 18),
+                      // Standard Plan (with payment)
                       _PlanCard(
                         icon: Icons.trending_up,
                         title: "Standard Plan",
                         subtitle: "Premium plan for one month",
                         description: "Get accurate stock market insights",
-                        price: "₹499 / month",
+                        price: "₹1251 / month",
                         buttonColor: Colors.blueAccent,
-                        onPressed: () {},
+                        onPressed: () {
+                          _openCheckout(amount: 1251, plan: "Standard");
+                        },
                       ),
                       if (isWide)
                         const SizedBox(width: 18)
                       else
                         const SizedBox(height: 18),
+                      // Premium Plan (with payment)
                       _PlanCard(
                         icon: Icons.workspace_premium,
                         title: "Premium Plan",
                         subtitle: "Premium plan for three months",
                         description: "Advanced stock trading analysis",
-                        price: "₹1299 / 3 months",
+                        price: "₹3500 / 3 months",
                         buttonColor: Colors.deepPurple,
-                        onPressed: () {},
+                        onPressed: () {
+                          _openCheckout(amount: 3500, plan: "Premium");
+                        },
                       ),
                     ],
                   );

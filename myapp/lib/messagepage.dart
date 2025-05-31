@@ -3,7 +3,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class MessagesPage extends StatefulWidget {
-  const MessagesPage({super.key});
+  const MessagesPage({super.key, required String group});
 
   @override
   State<MessagesPage> createState() => _MessagesPageState();

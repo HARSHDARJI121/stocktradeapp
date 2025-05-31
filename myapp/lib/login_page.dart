@@ -1,8 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:myapp/dashboard_page.dart';
+// Import your dashboard pages
+import 'dashboard_page.dart';
+import 'admin_dashboard_page.dart'; // Create this page for admin
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  void _login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email == "darjiharsh2005@gmail.com" && password == "harsh12") {
+      // Show prompt for admin/user choice
+      final result = await showDialog<String>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Login as"),
+          content: const Text("Choose how you want to login:"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, "user"),
+              child: const Text("User"),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, "admin"),
+              child: const Text("Admin"),
+            ),
+          ],
+        ),
+      );
+      if (result == "admin") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+        );
+      } else if (result == "user") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardPage()),
+        );
+      }
+    } else {
+      // Normal user login (replace with your logic)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const DashboardPage()),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +108,11 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
                   TextField(
+                    controller: emailController,
                     decoration: InputDecoration(
                       labelText: "Email",
-                      prefixIcon: const Icon(Icons.person, color: Colors.white70),
+                      prefixIcon:
+                          const Icon(Icons.person, color: Colors.white70),
                       filled: true,
                       fillColor: Colors.white12,
                       labelStyle: const TextStyle(color: Colors.white),
@@ -70,6 +125,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   TextField(
+                    controller: passwordController,
                     decoration: InputDecoration(
                       labelText: "Password",
                       prefixIcon: const Icon(Icons.lock, color: Colors.white70),
@@ -88,14 +144,7 @@ class LoginPage extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const DashboardPage(),
-                          ),
-                        );
-                      },
+                      onPressed: _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.greenAccent.shade700,
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -105,7 +154,8 @@ class LoginPage extends StatelessWidget {
                       ),
                       child: const Text(
                         "Log In",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
